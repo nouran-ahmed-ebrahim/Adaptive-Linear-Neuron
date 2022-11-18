@@ -121,6 +121,7 @@ def run_single_layer():
 
     # convert data frame to numpy
     trainData = train_data.to_numpy()
+    trainData = preprocessing.normalize(trainData)
     trainLabel = train_labels
     # transpose weight list for dot product
     transpose_weight = weights.transpose()
@@ -139,7 +140,8 @@ def run_single_layer():
             # if error occurs call update_weight function to update weights
             if error != 0:
                 weights = update_weight(transpose_weight, row, error)
-            else:
+
+            if signum(predictedValue) == int(trainLabel[row_num]):
                 score += 1
             row_num += 1
             # print train accuracy
@@ -176,10 +178,6 @@ def update_weight(weight_matrix, row, error_value):
     global lR
     delta = lR * error_value * row
     weight_matrix += delta
-
-    for idx in range(len(weight_matrix)):
-        if weight_matrix[idx] < 0.0000000001:
-            weight_matrix[idx] = 0.0000000001
     return weight_matrix
 
 
@@ -201,6 +199,7 @@ def testSample(sample):
 def test():
     global test_labels, test_data, weights
     testData = test_data.to_numpy()
+    testData = preprocessing.normalize(testData)
     transpose_weight = weights.transpose()
     test_label = test_labels
     row_num = 0
@@ -214,12 +213,11 @@ def test():
 
         # calculate predicted y
         predictedValue = np.dot(row, transpose_weight)
-        error = int(test_labels[row_num]) - predictedValue
 
         # updated confusion matrix
         # if false prediction
-        if error == 0:
-            # if sample was from class 1
+        if signum(predictedValue) == int(test_labels[row_num]):
+        # if sample was from class 1
             if test_labels[row_num] == '1':
                 confusionMatrix['Class1T'] += 1
             # if sample was from class 2
